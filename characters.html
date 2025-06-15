@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Character Match - Chemify</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <style>
+    body {
+      background: linear-gradient(135deg, #89f7fe, #66a6ff);
+      font-family: 'Comic Sans MS', cursive, sans-serif;
+      color: #222;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 480px;
+      margin: 2rem auto;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+      padding: 2rem;
+      text-align: center;
+    }
+
+    h1 {
+      margin-bottom: 0.5rem;
+      color: #3a0072;
+      user-select: none;
+    }
+
+    .score {
+      font-weight: 700;
+      font-size: 1.1rem;
+      margin-bottom: 1rem;
+      user-select: none;
+      color: #4a148c;
+    }
+
+    .character-img {
+      font-size: 6rem;
+      margin-bottom: 1.5rem;
+      user-select: none;
+    }
+
+    .instructions {
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+      user-select: none;
+    }
+
+    .options {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 1.5rem;
+    }
+
+    .option-btn {
+      background: #6a1b9a;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 0.6rem 1.2rem;
+      font-size: 1.2rem;
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 0.3s;
+      min-width: 60px;
+    }
+
+    .option-btn:hover:not(:disabled) {
+      background: #8e24aa;
+    }
+
+    .option-btn.correct {
+      background-color: #4caf50 !important;
+      cursor: default;
+    }
+
+    .option-btn.wrong {
+      background-color: #f44336 !important;
+      cursor: default;
+    }
+
+    .feedback {
+      font-weight: 700;
+      font-size: 1.3rem;
+      min-height: 2rem;
+      user-select: none;
+    }
+
+    .restart-btn {
+      background-color: #3a0072;
+      color: white;
+      border: none;
+      padding: 0.6rem 1.5rem;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      display: none;
+      user-select: none;
+      transition: background-color 0.3s;
+    }
+
+    .restart-btn:hover {
+      background-color: #5e009a;
+    }
+
+    /* Navbar styles from test.html */
+    .navbar {
+      background-color: #6a1b9a;
+    }
+
+    .navbar-brand,
+    .nav-link {
+      color: white !important;
+      font-size: 1.2rem;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Navbar copied exactly from test.html -->
+  <nav class="navbar navbar-expand-lg">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">Chemify</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
+        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="index.html">Home</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="train.html">Train Mode</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="characters.html">Character Grid</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="info.html">Information</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    <h1>Character Match</h1>
+    <div class="score" id="scoreDisplay">Score: 0 / 0</div>
+    <div class="character-img" id="characterEmoji">👤</div>
+    <div class="instructions">Select the correct element symbol for this character:</div>
+    <div class="options" id="optionsContainer"></div>
+    <div class="feedback" id="feedback"></div>
+    <button class="restart-btn" id="restartBtn">Restart Quiz</button>
+  </div>
+
+  <script>
+    // Characters data (at least 10 for the quiz)
+    const characters = [
+      { emoji: "🥷", name: "Nitrogen the Ninja", correctSymbol: "N", options: ["N", "O", "C", "H"] },
+      { emoji: "🔥", name: "Phosphorus the Flame", correctSymbol: "P", options: ["S", "P", "Cl", "F"] },
+      { emoji: "🌱", name: "Carbon the Plant", correctSymbol: "C", options: ["C", "H", "N", "O"] },
+      { emoji: "💧", name: "Oxygen the Water Drop", correctSymbol: "O", options: ["O", "H", "N", "F"] },
+      { emoji: "⚡", name: "Sulfur the Spark", correctSymbol: "S", options: ["S", "P", "Cl", "O"] },
+      { emoji: "🌟", name: "Chlorine the Star", correctSymbol: "Cl", options: ["Cl", "F", "Br", "I"] },
+      { emoji: "❄️", name: "Fluorine the Frost", correctSymbol: "F", options: ["F", "Cl", "Br", "I"] },
+      { emoji: "🦴", name: "Calcium the Bone", correctSymbol: "Ca", options: ["Ca", "Mg", "K", "Na"] },
+      { emoji: "💎", name: "Helium the Gem", correctSymbol: "He", options: ["He", "Ne", "Ar", "Kr"] },
+      { emoji: "☀️", name: "Hydrogen the Sun", correctSymbol: "H", options: ["H", "He", "Li", "Be"] }
+    ];
+
+    // Shuffle function to randomize options array
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    let currentIndex = 0;
+    let score = 0;
+    const maxQuestions = 10;
+
+    const characterEmoji = document.getElementById("characterEmoji");
+    const optionsContainer = document.getElementById("optionsContainer");
+    const feedback = document.getElementById("feedback");
+    const scoreDisplay = document.getElementById("scoreDisplay");
+    const restartBtn = document.getElementById("restartBtn");
+
+    // Prepare quiz by shuffling characters and selecting first 10
+    let quizCharacters = shuffleArray([...characters]).slice(0, maxQuestions);
+
+    function loadCharacter(index) {
+      feedback.textContent = "";
+      characterEmoji.textContent = quizCharacters[index].emoji;
+      optionsContainer.innerHTML = "";
+
+      // Randomize options order for this character
+      let randomizedOptions = shuffleArray([...quizCharacters[index].options]);
+
+      randomizedOptions.forEach(symbol => {
+        const btn = document.createElement("button");
+        btn.className = "option-btn";
+        btn.textContent = symbol;
+        btn.onclick = () => checkAnswer(symbol, btn);
+        optionsContainer.appendChild(btn);
+      });
+
+      updateScoreDisplay();
+    }
+
+    function checkAnswer(selected, btn) {
+      // Disable all buttons after a selection
+      const buttons = optionsContainer.querySelectorAll("button");
+      buttons.forEach(b => b.disabled = true);
+
+      const correctSymbol = quizCharacters[currentIndex].correctSymbol;
+
+      if (selected === correctSymbol) {
+        btn.classList.add("correct");
+        feedback.textContent = "✅ Correct! Moving to next...";
+        score++;
+        updateScoreDisplay();
+
+        // Move to next question after short delay
+        setTimeout(() => {
+          currentIndex++;
+          if (currentIndex < maxQuestions) {
+            loadCharacter(currentIndex);
+          } else {
+            endQuiz();
+          }
+        }, 1000);
+      } else {
+        btn.classList.add("wrong");
+        // Highlight correct answer
+        buttons.forEach(b => {
+          if (b.textContent === correctSymbol) {
+            b.classList.add("correct");
+          }
+        });
+        feedback.textContent = `❌ Wrong! The correct answer was "${correctSymbol}". Try again!`;
+
+        // Allow retry for the same question
+        buttons.forEach(b => b.disabled = false);
+        btn.disabled = true; // disable the wrong one clicked to avoid repeated clicks
+      }
+    }
+
+    function updateScoreDisplay() {
+      scoreDisplay.textContent = `Score: ${score} / ${maxQuestions}`;
+    }
+
+    function endQuiz() {
+      feedback.textContent = `🎉 Quiz complete! Your final score: ${score} / ${maxQuestions}`;
+      optionsContainer.innerHTML = "";
+      restartBtn.style.display = "inline-block";
+    }
+
+    restartBtn.onclick = () => {
+      currentIndex = 0;
+      score = 0;
+      quizCharacters = shuffleArray([...characters]).slice(0, maxQuestions);
+      restartBtn.style.display = "none";
+      loadCharacter(currentIndex);
+      feedback.textContent = "";
+      updateScoreDisplay();
+    };
+
+    // Load first character on page load
+    loadCharacter(currentIndex);
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>
